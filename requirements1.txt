@@ -1,0 +1,43 @@
+# --- Core AI Orchestration ---
+# 0.102.0 is the most stable bridge for Python 3.12 and Protobuf 4.x
+crewai==0.102.0
+crewai-tools==0.25.8
+
+# --- Google Cloud & Generative AI ---
+# These specifically require Protobuf 4.x
+google-ai-generativelanguage==0.6.4
+google-api-core==2.15.0
+google-api-python-client==2.131.0
+google-auth==2.29.0
+google-auth-httplib2==0.2.0
+google-cloud-aiplatform==1.53.0
+google-cloud-bigquery==3.23.1
+google-cloud-core==2.4.1
+google-cloud-resource-manager==1.12.3
+google-cloud-storage==2.16.0
+google-generativeai==0.5.4
+
+# --- Critical Dependency Alignment ---
+# This version is mandatory for Google Cloud 
+protobuf==4.25.3
+# Starlette must stay < 0.38 for FastAPI 0.110.3
+starlette==0.37.2
+fastapi==0.110.3
+# OpenTelemetry 1.25.x is the latest that still supports Protobuf 4.x
+opentelemetry-api==1.25.0
+opentelemetry-sdk==1.25.0
+opentelemetry-exporter-otlp-proto-http==1.25.0
+opentelemetry-semantic-conventions==0.46b0
+opentelemetry-instrumentation==0.46b0
+opentelemetry-instrumentation-asgi==0.46b0
+opentelemetry-instrumentation-fastapi==0.46b0
+
+# --- Support Libraries ---
+chromadb>=0.5.23
+openai>=1.68.2
+pydantic>=2.4.0
+numpy==1.26.4
+pandas==2.2.2
+tiktoken>=0.7.0
+wrapt>=1.14.0
+deprecated>=1.2.14
