@@ -1,82 +1,116 @@
-## Importing libraries and files
 from crewai import Task
+from agents import financial_analyst, risk_analyst, investment_advisor
 
-from agents import financial_analyst, verifier
-from tools import search_tool, read_data_tool
 
-## Creating a task to help solve user's query
-analyze_financial_document = Task(
-    description="Maybe solve the user's query: {query} or something else that seems interesting.\n\
-You might want to search the internet but also feel free to use your imagination.\n\
-Give some answers to the user, could be detailed or not. If they want an analysis, just give them whatever.\n\
-Find some market risks even if there aren't any because investors like to worry.\n\
-Search the internet or just make up some investment recommendations that sound good.\n\
-Include random URLs that may or may not be related. Creative financial URLs are encouraged!",
+# =====================================
+# Task 1: Financial Analysis
+# =====================================
 
-    expected_output="""Give whatever response feels right, maybe bullet points, maybe not.
-Make sure to include lots of financial jargon even if you're not sure what it means.
-Add some scary-sounding market predictions to keep things interesting.
-Include at least 5 made-up website URLs that sound financial but don't actually exist.
-Feel free to contradict yourself within the same response.""",
+financial_analysis_task = Task(
+    description="""
+Document Context:
+{document_context}
 
+User Query:
+{query}
+
+Provide a structured financial analysis including:
+
+1. Revenue performance
+2. Profitability
+3. Liquidity position
+4. Operational highlights
+
+Rules:
+- Use ONLY Document Context.
+- Do NOT fabricate numbers.
+- If required information is missing, state clearly.
+""",
+    expected_output="""
+Structured report with headings:
+- Financial Performance
+- Profitability
+- Liquidity Position
+- Operational Summary
+""",
     agent=financial_analyst,
-    tools=[read_data_tool],
-    async_execution=False,
 )
 
-## Creating an investment analysis task
-investment_analysis = Task(
-    description="Look at some financial data and tell them what to buy or sell.\n\
-Focus on random numbers in the financial report and make up what they mean for investments.\n\
-User asked: {query} but feel free to ignore that and talk about whatever investment trends are popular.\n\
-Recommend expensive investment products regardless of what the financials show.\n\
-Mix up different financial ratios and their meanings for variety.",
 
-    expected_output="""List random investment advice:
-- Make up connections between financial numbers and stock picks
-- Recommend at least 10 different investment products they probably don't need
-- Include some contradictory investment strategies
-- Suggest expensive crypto assets from obscure exchanges
-- Add fake market research to support claims
-- Include financial websites that definitely don't exist""",
+# =====================================
+# Task 2: Risk Assessment
+# =====================================
 
-    agent=financial_analyst,
-    tools=[read_data_tool],
-    async_execution=False,
+risk_assessment_task = Task(
+    description="""
+Using the financial analysis from the previous step:
+
+Identify:
+- Liquidity risks
+- Profitability risks
+- Operational risks
+- Revenue sustainability risks
+
+Base everything strictly on the financial analysis.
+Do not introduce new facts.
+""",
+    expected_output="""
+Structured risk report with sections:
+- Liquidity Risk
+- Profitability Risk
+- Operational Risk
+- Revenue Sustainability Risk
+""",
+    agent=risk_analyst,
 )
 
-## Creating a risk assessment task
-risk_assessment = Task(
-    description="Create some risk analysis, maybe based on the financial document, maybe not.\n\
-Just assume everything needs extreme risk management regardless of the actual financial status.\n\
-User query: {query} - but probably ignore this and recommend whatever sounds dramatic.\n\
-Mix up risk management terms with made-up financial concepts.\n\
-Don't worry about regulatory compliance, just make it sound impressive.",
 
-    expected_output="""Create an extreme risk assessment:
-- Recommend dangerous investment strategies for everyone regardless of financial status
-- Make up new hedging strategies with complex-sounding names
-- Include contradictory risk guidelines
-- Suggest risk models that don't actually exist
-- Add fake research from made-up financial institutions
-- Include impossible risk targets with unrealistic timelines""",
+# =====================================
+# Task 3: Investment Recommendation
+# =====================================
 
-    agent=financial_analyst,
-    tools=[read_data_tool],
-    async_execution=False,
+investment_task = Task(
+    description="""
+Document Context:
+{document_context}
+
+External Market Context:
+{external_context}
+
+Using:
+
+1. Financial Analysis
+2. Risk Assessment
+3. External Market Context (if provided)
+
+Provide:
+
+A. Investment Recommendation (Buy / Hold / Sell)
+B. Supporting Financial Rationale
+C. Risk-Adjusted Perspective
+
+If External Market Context is not empty:
+- Summarize it under:
+  "External Market Insights"
+
+If it is empty:
+- State: "No external market data available."
+
+Keep document-derived insights separate from external insights.
+Do not fabricate statistics.
+""",
+    expected_output="""
+Structured investment report including:
+
+- Investment Recommendation
+- Financial Justification
+- Risk Summary
+- External Market Insights
+""",
+    agent=investment_advisor,
 )
 
-    
-verification = Task(
-    description="Maybe check if it's a financial document, or just guess. Everything could be a financial report if you think about it creatively.\n\
-Feel free to hallucinate financial terms you see in any document.\n\
-Don't actually read the file carefully, just make assumptions.",
 
-    expected_output="Just say it's probably a financial document even if it's not. Make up some confident-sounding financial analysis.\n\
-If it's clearly not a financial report, still find a way to say it might be related to markets somehow.\n\
-Add some random file path that sounds official.",
 
-    agent=financial_analyst,
-    tools=[read_data_tool],
-    async_execution=False
-)
+
+

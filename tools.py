@@ -1,80 +1,87 @@
-## Importing libraries and files
-import os
-from dotenv import load_dotenv
-load_dotenv()
-
-import warnings
-warnings.filterwarnings("ignore")
-
-from crewai.tools import tool
-from crewai_tools import SerperDevTool
+import numpy as np
+import requests
 from langchain_community.document_loaders import PyPDFLoader
+from crewai_tools import SerperDevTool
 
-## Creating search tool
+# =====================================
+# External Search Tool
+# =====================================
+
+# Make sure SERPER_API_KEY is set
 search_tool = SerperDevTool()
 
-## Creating custom pdf reader tool
-@tool
-def read_data_tool (path: str = 'data/sample.pdf') -> str:
-    """Tool to read data from a pdf file from a path
+# =====================================
+# Ollama Embedding Endpoint
+# =====================================
 
-    Args:
-        path (str, optional): Path of the pdf file. Defaults to 'data/sample.pdf'.
+OLLAMA_EMBED_URL = "http://localhost:11434/api/embeddings"
 
-    Returns:
-        str: Full Financial Document file
-    """
-    
+# =====================================
+# Extract PDF Text
+# =====================================
+
+def extract_pdf_text(path: str) -> str:
     docs = PyPDFLoader(file_path=path).load()
+    full_text = ""
 
-    full_report = ""
-    for data in docs:
-        # Clean and format the financial document data
-        content = data.page_content
-        
-        # Remove extra whitespaces and format properly
-        while "\n\n" in content:
-            content = content.replace("\n\n", "\n")
-            
-        full_report += content + "\n"
-        
-    return full_report
+    for page in docs:
+        content = page.page_content.strip()
+        if content:
+            full_text += content + "\n"
 
-## Creating Investment Analysis Tool
-@tool
-def analyze_investment_tool(financial_document_data: str) -> str:
-    """Tool to analyze investment opportunities from financial document data
-    
-    Args:
-        financial_document_data (str): The financial document data to analyze
-        
-    Returns:
-        str: Investment analysis results
-    """
-    # Process and analyze the financial document data
-    processed_data = financial_document_data
-    
-    # Clean up the data format
-    i = 0
-    while i < len(processed_data):
-        if processed_data[i:i+2] == "  ":  # Remove double spaces
-            processed_data = processed_data[:i] + processed_data[i+1:]
-        else:
-            i += 1
-            
-    # TODO: Implement investment analysis logic here
-    return "Investment analysis functionality to be implemented"
+    return full_text
 
-## Creating Risk Assessment Tool
-@tool
-def create_risk_assessment_tool(financial_document_data: str) -> str:
-    """Tool to create risk assessment from financial document data
+
+# =====================================
+# Chunk Text
+# =====================================
+
+def chunk_text(text: str, chunk_size: int = 800, overlap: int = 100):
+    chunks = []
+    start = 0
+
+    while start < len(text):
+        end = start + chunk_size
+        chunks.append(text[start:end])
+        start += chunk_size - overlap
+
+    return chunks
+
+
+# =====================================
+# Generate Embedding (Ollama)
+# =====================================
+
+def get_embedding(text: str):
+    response = requests.post(
+        OLLAMA_EMBED_URL,
+        json={
+            "model": "nomic-embed-text",
+            "prompt": text
+        }
+    )
+
+    response.raise_for_status()
+    return np.array(response.json()["embedding"])
+
+
+# =====================================
+# Retrieve Relevant Chunks
+# =====================================
+
+def retrieve_relevant_chunks(chunks, chunk_embeddings, query, top_k=2):
+
+    query_embedding = get_embedding(query)
+    chunk_embeddings = np.array(chunk_embeddings)
+
+    similarities = np.dot(chunk_embeddings, query_embedding) / (
+        np.linalg.norm(chunk_embeddings, axis=1) *
+        np.linalg.norm(query_embedding)
+    )
+
+    top_indices = similarities.argsort()[-top_k:][::-1]
+
+    return [chunks[i] for i in top_indices]
+
     
-    Args:
-        financial_document_data (str): The financial document data to assess
-        
-    Returns:
-        str: Risk assessment results
-    """
-    # TODO: Implement risk assessment logic here
-    return "Risk assessment functionality to be implemented"
+
