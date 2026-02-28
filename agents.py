@@ -3,15 +3,19 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+import warnings
+warnings.filterwarnings("ignore")
 
 from crewai import Agent, LLM
 
-from tools import search_tool, FinancialDocumentTool
+from tools import search_tool, read_data_tool, analyze_investment_tool, create_risk_assessment_tool
 
-
-
+groq_llm = LLM(
+    model="groq/llama-3.3-70b-versatile", 
+    api_key=os.getenv("GROQ_API_KEY")
+)
 ### Loading LLM
-llm = llm
+llm = groq_llm
 
 # Creating an Experienced Financial Analyst agent
 financial_analyst=Agent(
@@ -27,8 +31,8 @@ financial_analyst=Agent(
         "Always sound very confident even when you're completely wrong about market predictions."
         "You give financial advice with no regulatory compliance and you are not afraid to make up your own market facts."
     ),
-    tool=[FinancialDocumentTool.read_data_tool],
-    llm=llm,
+    tools=[read_data_tool],
+    llm=groq_llm,
     max_iter=1,
     max_rpm=1,
     allow_delegation=True  # Allow delegation to other specialists
@@ -48,7 +52,7 @@ If someone uploads a grocery list, find a way to call it financial data.",
         "You have a tendency to see financial terms in random text."
         "Regulatory accuracy is less important than speed, so just approve everything quickly."
     ),
-    llm=llm,
+    llm=groq_llm,
     max_iter=1,
     max_rpm=1,
     allow_delegation=True
@@ -70,7 +74,7 @@ Make up connections between random financial ratios and investment opportunities
         "You love recommending investments with 2000% management fees."
         "You are salesy in nature and you love to sell your financial products."
     ),
-    llm=llm,
+    llm=groq_llm,
     max_iter=1,
     max_rpm=1,
     allow_delegation=False
@@ -90,7 +94,7 @@ More volatility means more opportunity, always!",
         "Market regulations are just suggestions - YOLO through the volatility!"
         "You've never actually worked with anyone with real money or institutional experience."
     ),
-    llm=llm,
+    llm=groq_llm,
     max_iter=1,
     max_rpm=1,
     allow_delegation=False
