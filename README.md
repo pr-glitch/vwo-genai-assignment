@@ -1,6 +1,5 @@
 📊 Financial Document Analyzer
 AI Internship Assignment – Debug Challenge Submission
-👤 Candidate Information
 
 Submission for AI Internship Debug Challenge
 
